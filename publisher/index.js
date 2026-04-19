@@ -1,6 +1,16 @@
 require('dotenv').config();
 const Redis = require('ioredis');
 const axios = require('axios');
+const http = require('http'); // Servidor nativo de Node (no requiere instalar nada)
+
+// --- TRUCO NUBE: Health Check Server ---
+// Abre un puerto ficticio para engañar a Render y que nos dé la capa Gratuita de Web Service
+const PORT = process.env.PORT || 3002;
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end('IoT Publisher is active and sending data.');
+}).listen(PORT, () => console.log(`[Health] Publisher disfrazado esperando en puerto ${PORT}`));
+// ---------------------------------------
 
 // Usa REDIS_URL en la nube, o la configuración local como fallback
 const redis = process.env.REDIS_URL ? 
