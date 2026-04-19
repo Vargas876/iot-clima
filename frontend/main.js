@@ -107,44 +107,47 @@ function getOrCreateDataset(chart, city) {
 const globalLabels = [];
 
 function updateCharts(dataPoint) {
-    const timeLabel = new Date(dataPoint.timestamp).toLocaleTimeString();
+    const date = new Date(dataPoint.timestamp);
+    const timeLabel = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const city = dataPoint.ciudad;
     
-    if (!globalLabels.includes(timeLabel)) {
+    let labelIndex = globalLabels.indexOf(timeLabel);
+    
+    // Si la etiqueta no existe, la creamos y sincronizamos todos los datasets
+    if (labelIndex === -1) {
         globalLabels.push(timeLabel);
-        tempChart.data.labels.push(timeLabel);
-        humChart.data.labels.push(timeLabel);
-        presChart.data.labels.push(timeLabel);
+        labelIndex = globalLabels.length - 1;
         
-        // Keep last 40 intervals
+        // Mantener solo los últimos 40 puntos
         if (globalLabels.length > 40) {
             globalLabels.shift();
-            tempChart.data.labels.shift();
-            humChart.data.labels.shift();
-            presChart.data.labels.shift();
-            
-            tempChart.data.datasets.forEach(ds => ds.data.shift());
-            humChart.data.datasets.forEach(ds => ds.data.shift());
-            presChart.data.datasets.forEach(ds => ds.data.shift());
+            labelIndex--; 
+            // Limpiar datos viejos de todos los datasets para mantener sincronía
+            [tempChart, humChart, presChart].forEach(chart => {
+                chart.data.labels = globalLabels;
+                chart.data.datasets.forEach(ds => ds.data.shift());
+            });
         }
     }
     
-    const dsTemp = getOrCreateDataset(tempChart, city);
-    const dsHum = getOrCreateDataset(humChart, city);
-    const dsPres = getOrCreateDataset(presChart, city);
+    // Función auxiliar para actualizar datasets específicos
+    const updateDataset = (chart, value) => {
+        const ds = getOrCreateDataset(chart, city);
+        // Rellenar con nulls si la ciudad se saltó intervalos previos
+        while (ds.data.length < globalLabels.length) {
+            ds.data.push(null);
+        }
+        // Colocar el valor en su posición temporal exacta
+        ds.data[labelIndex] = value;
+    };
+
+    updateDataset(tempChart, dataPoint.temperatura);
+    updateDataset(humChart, dataPoint.humedad);
+    updateDataset(presChart, dataPoint.presion);
     
-    // Pad missing points for the city if it missed an interval
-    while(dsTemp.data.length < globalLabels.length - 1) { dsTemp.data.push(dsTemp.data[dsTemp.data.length-1] || null); }
-    while(dsHum.data.length < globalLabels.length - 1) { dsHum.data.push(dsHum.data[dsHum.data.length-1] || null); }
-    while(dsPres.data.length < globalLabels.length - 1) { dsPres.data.push(dsPres.data[dsPres.data.length-1] || null); }
-    
-    dsTemp.data.push(dataPoint.temperatura);
-    dsHum.data.push(dataPoint.humedad);
-    dsPres.data.push(dataPoint.presion);
-    
-    tempChart.update();
-    humChart.update();
-    presChart.update();
+    tempChart.update('none'); // 'none' para mejor performance en actualizaciones rápidas
+    humChart.update('none');
+    presChart.update('none');
 }
 
 function updateHeatmap() {
