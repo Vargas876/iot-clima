@@ -15,13 +15,19 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 
 // Prepare Heatmap layer
 let heatPoints = [];
-let heatLayer = L.heatLayer(heatPoints, {
-    radius: 70, // 🔥 Aumentadísimo para verse espectacular de lejos
-    blur: 50,   // 🔥 Mayor difuminado para fundirse con el terreno
-    maxZoom: 6, // Hace que la escala de intensidad soporte el alejamiento
-    max: 35, 
-    gradient: {0.1: 'blue', 0.3: 'cyan', 0.5: 'lime', 0.8: 'yellow', 1.0: 'red'}
-}).addTo(map);
+let heatLayer;
+
+if (typeof L.heatLayer === 'function') {
+    heatLayer = L.heatLayer(heatPoints, {
+        radius: 70, 
+        blur: 50,   
+        maxZoom: 6, 
+        max: 35, 
+        gradient: {0.1: 'blue', 0.3: 'cyan', 0.5: 'lime', 0.8: 'yellow', 1.0: 'red'}
+    }).addTo(map);
+} else {
+    console.error('Heatmap plugin not found or not loaded correctly.');
+}
 
 let cityMarkers = {}; // Keep reference to markers
 
@@ -142,7 +148,9 @@ function updateCharts(dataPoint) {
 }
 
 function updateHeatmap() {
-    heatLayer.setLatLngs(heatPoints);
+    if (heatLayer) {
+        heatLayer.setLatLngs(heatPoints);
+    }
 }
 
 // Websocket Connection (Cloud o Local)
@@ -156,12 +164,12 @@ socket.on('connect', () => {
 let isInitialized = false;
 
 socket.on('clima_history', (historyArray) => {
-    if(isInitialized) return;
+    if(isInitialized || !Array.isArray(historyArray)) return;
+    console.log(`[Dashboard] Procesando historial de ${historyArray.length} puntos...`);
     
     // Sort array by timestamp
     historyArray.sort((a,b) => a.timestamp - b.timestamp);
     
-    // Guardar el último estado para dibujar el mapa inicial
     const latestStatus = {};
 
     historyArray.forEach(point => {
@@ -169,17 +177,46 @@ socket.on('clima_history', (historyArray) => {
         latestStatus[point.ciudad] = point;
     });
 
-    // Inyectar el estado inicial en el mapa para no esperar la próxima actualización
+    // Dibujar el estado más reciente de cada ciudad en el mapa inmediatamente
     Object.values(latestStatus).forEach(data => {
-        updateQueue.push(data);
+        updateMapElements(data);
     });
-
-    if (!isProcessingQueue && updateQueue.length > 0) {
-        requestAnimationFrame(processQueue);
-    }
     
     isInitialized = true;
 });
+
+function updateMapElements(data) {
+    const {lat, lon, ciudad, temperatura, humedad} = data;
+    
+    if (!cityMarkers[ciudad]) {
+        const marker = L.circleMarker([lat, lon], {
+            radius: 8,
+            fillColor: cityColors[ciudad] || '#fff',
+            color: '#fff',
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(map);
+        
+        cityMarkers[ciudad] = marker;
+    }
+    
+    cityMarkers[ciudad].bindTooltip(`
+        <div class="custom-premium-popup">
+          <strong style="color:${cityColors[ciudad]}">${ciudad}</strong>
+          <div class="popup-data">TEMP <span>${temperatura}°C</span></div>
+          <div class="popup-data">HUM <span>${humedad}%</span></div>
+        </div>
+    `);
+    
+    let idx = heatPoints.findIndex(p => p[0] === lat && p[1] === lon);
+    if (idx !== -1) {
+        heatPoints[idx] = [lat, lon, temperatura];
+    } else {
+        heatPoints.push([lat, lon, temperatura]);
+    }
+    updateHeatmap();
+}
 
 let updateQueue = [];
 let isProcessingQueue = false;
@@ -191,44 +228,12 @@ function processQueue() {
     }
     isProcessingQueue = true;
     
-    // Throttling básico: procesar un batch máximo por frame para evitar sobrecarga del frontend
     const batch = updateQueue.splice(0, 5);
-    
     batch.forEach(data => {
         updateCharts(data);
-        
-        const {lat, lon, ciudad, temperatura, humedad} = data;
-        
-        if (!cityMarkers[ciudad]) {
-            const marker = L.circleMarker([lat, lon], {
-                radius: 8,
-                fillColor: cityColors[ciudad] || '#fff',
-                color: '#fff',
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.9
-            }).addTo(map);
-            
-            cityMarkers[ciudad] = marker;
-        }
-        
-        cityMarkers[ciudad].bindTooltip(`
-            <div class="custom-premium-popup">
-              <strong style="color:${cityColors[ciudad]}">${ciudad}</strong>
-              <div class="popup-data">TEMP <span>${temperatura}°C</span></div>
-              <div class="popup-data">HUM <span>${humedad}%</span></div>
-            </div>
-        `);
-        
-        let idx = heatPoints.findIndex(p => p[0] === lat && p[1] === lon);
-        if (idx !== -1) {
-            heatPoints[idx] = [lat, lon, temperatura];
-        } else {
-            heatPoints.push([lat, lon, temperatura]);
-        }
+        updateMapElements(data);
     });
 
-    updateHeatmap();
     requestAnimationFrame(processQueue);
 }
 
