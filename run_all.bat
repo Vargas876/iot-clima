@@ -1,0 +1,13 @@
+@echo off
+echo Iniciando Sistema IoT Simulado (Clima en Vivo)...
+
+echo 1. Iniciando Subscriptor / Servidor WebSockets...
+start cmd /k "cd subscriber && npm install && node index.js"
+
+echo 2. Iniciando Publisher (Batching Sensor Real/Simulado)...
+start cmd /k "cd publisher && npm install && node index.js"
+
+echo 3. Levantando Dashboard Frontend...
+start cmd /k "cd frontend && npm install && npm run dev"
+
+echo Todos los servicios estan levantandose en nuevas ventanas de consola.

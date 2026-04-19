@@ -1,0 +1,187 @@
+:root {
+  --bg-color-main: #0b0c10;
+  --bg-color-gradient: radial-gradient(circle at top left, #1f2833, #0b0c10);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #ffffff;
+  --text-secondary: #c5c6c7;
+  --accent-cyan: #66fcf1;
+  --accent-teal: #45a29e;
+  --font-family: 'Inter', sans-serif;
+  --box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg-color-main);
+  background-image: var(--bg-color-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.dashboard-wrapper {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: var(--box-shadow);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.glass-panel:hover {
+  border-color: rgba(102, 252, 241, 0.2);
+}
+
+/* Header */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 32px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.glow-orb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-cyan), 0 0 20px var(--accent-teal);
+  animation: pulse 2s infinite;
+}
+
+.logo h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.logo h1 span {
+  color: var(--accent-teal);
+  font-weight: 400;
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #4cd137;
+  border-radius: 50%;
+  animation: pulse-green 1.5s infinite;
+}
+
+/* Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  min-height: calc(100vh - 150px);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.panel-header h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.panel-header p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Map Section */
+.map-section {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#map {
+  flex: 1;
+  min-height: 400px;
+  width: 100%;
+  background-color: #1a1a1a;
+  z-index: 1;
+}
+
+/* Charts Section */
+.charts-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.chart-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.canvas-wrapper {
+  padding: 16px;
+  flex: 1;
+  position: relative;
+  min-height: 200px;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 209, 55, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(76, 209, 55, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 209, 55, 0); }
+}
+
+/* Override Leaflet dark map elements naturally appearing white */
+.leaflet-container {
+    background: #111 !important;
+}
+.leaflet-bar a {
+    background-color: #222 !important;
+    color: #fff !important;
+    border-bottom: 1px solid #444 !important;
+}

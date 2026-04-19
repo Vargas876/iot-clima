@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SaaS Clima IoT Dashboard</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <link rel="stylesheet" href="./style.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="dashboard-wrapper">
+      
+      <!-- Top Header -->
+      <header class="glass-panel main-header">
+        <div class="logo">
+          <div class="glow-orb"></div>
+          <h1>IoT Clima<span>Stream</span></h1>
+        </div>
+        <div class="system-status">
+          <span class="pulse-dot"></span> Receptores Activos
+        </div>
+      </header>
+
+      <!-- Main Layout -->
+      <main class="dashboard-grid">
+        
+        <!-- Left Column: Map -->
+        <section class="glass-panel map-section">
+          <div class="panel-header">
+            <h2>Ubicación Puntos de Control</h2>
+            <p>Red de Sensores (Heatmap Temp)</p>
+          </div>
+          <div id="map"></div>
+        </section>
+
+        <!-- Right Column: Charts -->
+        <section class="charts-column">
+          
+          <div class="glass-panel chart-container">
+            <div class="panel-header">
+              <h2>Evolución de Temperatura (°C)</h2>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="tempChart"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-panel chart-container">
+            <div class="panel-header">
+              <h2>Evolución de Humedad (%)</h2>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="humChart"></canvas>
+            </div>
+          </div>
+
+          <div class="glass-panel chart-container">
+            <div class="panel-header">
+              <h2>Evolución de Presión (hPa)</h2>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="presChart"></canvas>
+            </div>
+          </div>
+
+        </section>
+      </main>
+    </div>
+
+    <!-- Main Logic -->
+    <script type="module" src="/main.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  </body>
+</html>
