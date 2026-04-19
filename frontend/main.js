@@ -161,9 +161,22 @@ socket.on('clima_history', (historyArray) => {
     // Sort array by timestamp
     historyArray.sort((a,b) => a.timestamp - b.timestamp);
     
+    // Guardar el último estado para dibujar el mapa inicial
+    const latestStatus = {};
+
     historyArray.forEach(point => {
         updateCharts(point);
+        latestStatus[point.ciudad] = point;
     });
+
+    // Inyectar el estado inicial en el mapa para no esperar la próxima actualización
+    Object.values(latestStatus).forEach(data => {
+        updateQueue.push(data);
+    });
+
+    if (!isProcessingQueue && updateQueue.length > 0) {
+        requestAnimationFrame(processQueue);
+    }
     
     isInitialized = true;
 });
