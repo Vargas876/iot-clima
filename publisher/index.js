@@ -84,9 +84,9 @@ function simulateRandomWalk() {
     CITIES.forEach(c => {
         const d = currentData[c.name];
         
-        d.temperatura = parseFloat((d.temperatura + (Math.random() - 0.5)).toFixed(2));
-        d.humedad = Math.max(0, Math.min(100, Math.round(d.humedad + (Math.random() * 2 - 1))));
-        d.presion = parseFloat((d.presion + (Math.random() - 0.5)).toFixed(2));
+        d.temperatura = parseFloat((d.temperatura + (Math.random() - 0.5) * 1.5).toFixed(2));
+        d.humedad = Math.max(0, Math.min(100, Math.round(d.humedad + (Math.random() - 0.5) * 4)));
+        d.presion = parseFloat((d.presion + (Math.random() - 0.5) * 3).toFixed(2));
         d.viento = Math.max(0, parseFloat((d.viento + (Math.random() - 0.5)).toFixed(2)));
         d.timestamp = Date.now();
     });
