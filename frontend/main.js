@@ -16,11 +16,11 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 // Prepare Heatmap layer
 let heatPoints = [];
 let heatLayer = L.heatLayer(heatPoints, {
-    radius: 30,
-    blur: 20,
-    maxZoom: 10,
-    max: 35, // max temperature to represent highest intensity (red)
-    gradient: {0.3: 'blue', 0.5: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red'}
+    radius: 70, // 🔥 Aumentadísimo para verse espectacular de lejos
+    blur: 50,   // 🔥 Mayor difuminado para fundirse con el terreno
+    maxZoom: 6, // Hace que la escala de intensidad soporte el alejamiento
+    max: 35, 
+    gradient: {0.1: 'blue', 0.3: 'cyan', 0.5: 'lime', 0.8: 'yellow', 1.0: 'red'}
 }).addTo(map);
 
 let cityMarkers = {}; // Keep reference to markers
@@ -195,10 +195,10 @@ function processQueue() {
         }
         
         cityMarkers[ciudad].bindTooltip(`
-            <div style="font-family:Inter; font-size:13px; text-align:center;">
-              <b style="color:${cityColors[ciudad]}">${ciudad}</b><br>
-              🌡️ Temp: <b>${temperatura}°C</b><br>
-              💧 Hum: ${humedad}%
+            <div class="custom-premium-popup">
+              <strong style="color:${cityColors[ciudad]}">${ciudad}</strong>
+              <div class="popup-data">TEMP <span>${temperatura}°C</span></div>
+              <div class="popup-data">HUM <span>${humedad}%</span></div>
             </div>
         `);
         

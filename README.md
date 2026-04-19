@@ -2,76 +2,55 @@
 
 Este proyecto es una simulación avanzada de una red de biosensores IoT instalados en 8 ciudades principales de Colombia, transmitiendo datos climatológicos en tiempo real utilizando una arquitectura de eventos impulsada por **Redis Pub/Sub**.
 
-## 🚀 Arquitectura del Proyecto
+## 🚀 Arquitectura del Proyecto (Microservicios)
 
-El proyecto está diseñado bajo un modelo de microservicios:
+El proyecto está diseñado de forma modularizada, lo que permite su despliegue tanto en local como en infraestructuras Cloud Severless:
 
-1. **`docker-compose.yml` (Base de Datos)**: Contenedor principal de Redis, encargado del enrutamiento de mensajes y persistencia del historial térmico temporal (`Sorted Sets`).
-2. **`publisher/` (Backend - Emisor)**: Script en Node.js actuando como la red de sensores. Utiliza un **modelo híbrido**: consulta datos reales a la API de *Open-Meteo* y aplica un algoritmo de *Random walk* entre peticiones para simular las variaciones en tiempo real de los sensores IoT.
-3. **`subscriber/` (Backend - Receptor)**: Servidor Express + WebSockets (Socket.io). Está suscrito permanentemente al canal Redis. Inyecta el histórico almacenado a clientes nuevos y emite un flujo (stream) constante de las lecturas en vivo.
-4. **`frontend/` (Cliente UI)**: Dashboard analítico estilo *SaaS* renderizado de forma fluida a 60FPS. Contiene integración con Leaflet (Mapas de calor) y Chart.js para telemetría cronometrada.
-
----
-
-## ⚙️ Requisitos Previos
-
-Necesitas tener instaladas las siguientes herramientas en tu sistema (Windows/Mac/Linux):
-
-- **[Node.js](https://nodejs.org/)** (v16.0 o superior)
-- **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Debe estar ejecutándose en segundo plano para levantar Redis)
+1. **Base de Datos (Transmisor y Caché)**: Servidor Redis encargado del enrutamiento de mensajes Pub/Sub y persistencia del historial térmico temporal (`Sorted Sets`).
+2. **`publisher/` (Backend - Emisor Fantasma)**: Node.js worker actuando como la red de sensores. Utiliza un **modelo híbrido**: consulta datos reales a la API de *Open-Meteo* y aplica un algoritmo de *Random walk* entre peticiones para simular las variaciones fluidas.
+3. **`subscriber/` (Backend - Receptor Node)**: Servidor Express + WebSockets. Inyecta el histórico almacenado a clientes nuevos mediante `ZRANGE` y emite un flujo constante de las lecturas en vivo mediante suscripciones Redis.
+4. **`frontend/` (Dashboard Vercel/Vite)**: UI analítica nivel *SaaS* renderizada de forma asíncrona a 60FPS, con mitigación de atascos usando `requestAnimationFrame` (*throttling*). Incluye *Heatmaps* térmicos (Leaflet) y telemetría por Chart.js con animaciones CSS (Mesh Gradients & Glassmorphism).
 
 ---
 
-## ▶️ ¿Cómo iniciar el Proyecto?
+## ☁️ Acceso en la Nube (Producción)
 
-Toda la inicialización se puede hacer casi de manera automática en Windows. Alternativamente, puedes arrancar manualmente cada sección. 
+El proyecto se encuentra totalmente parametrizado a través de Variables de Entorno (`.env`) para ejecutarse en la nube usando capas Serverless gratuitas.
 
-### Opción 1: Arranque Rápido (Recomendado en Windows)
+- **Redis**: Alojar en [Upstash](https://upstash.com/) `REDIS_URL`
+- **Backends (Pub/Sub)**: Desplegables en [Render](https://render.com/) como "Web Services" independientes (El *Publisher* expone un health check por el puerto nativo para evitar la limitación de workers de Render).
+- **Frontend**: Alojado en [Vercel](https://vercel.com/) consumiendo la URL del Subscriber como `VITE_WS_URL`.
 
-1. Abre / Inicia tu **Docker Desktop** (Asegúrate de que su icono esté abierto en tu barra de tareas). 
-2. Haz doble clic en el archivo `run_all.bat` ubicado en la carpeta del proyecto.
-   > Este script instalará todo e iniciará tu Publisher, tu servidor de Subscriber y tu Frontend web de manera simultánea en consolas pequeñas diferentes.
-3. Una de esas consolas pertenecerá al servidor Web (Vite) y te escupirá una Local URL allí dibujada (usualmente `http://localhost:5173`). ¡Solo tienes que darle `CTRL` + `Click` encima y verás el panel de control fluir!
+> ⚠️ **Aviso de "Cold Start"**: Los servicios gratuitos de Render se suspenden tras 15 minutos sin tráfico. Al abrir el dashboard Vercel en la web, la conexión inicial WebSocket puede demorar unos 60 a 90 segundos en "despertar" al Subscriber/Publisher antes de proyectar la telemetría en tiempo real.
 
-*(Es primordial que Docker te encienda tu base de datos Redis. Si ves errores rojos en los Node al correr el `.bat`, prueba primero levantar Docker tú mismo abriendo tu terminal ahí mismo y lanzando el comando clásico: `docker-compose up -d`).*
+---
 
-### Opción 2: Ejecución Manual Paso a Paso (Modo Exposición)
+## ▶️ Ejecución en Local (Ambiente de Pruebas PC)
 
-Si prefieres levantar las piezas una a una para explicarlas:
+Para iniciar todo el sistema localmente con 0 configuración, necesitas **Node.js** y **Docker Desktop** funcionando.
 
-**Paso 1: Encender la Base de Datos Redis**
-Abre una consola o consola PowerShell dentro del proyecto y lanza:
+### Arranque Rápido Automático (Windows)
+1. Abre tu **Docker Desktop**. 
+2. Haz doble clic en el archivo `run_all.bat`. Este script arrancará tu base Redis, instalará dependencias, iniciará ambos backends en consola e iniciará el Dashboard mediante Vite.
+3. Ve a `http://localhost:5173`.
+
+### Ejecución Manual Explicativa
+Abre 4 consolas integradas en el proyecto y lanza lo siguiente en cada una:
+
+**Consola 1: Iniciar Redis Local**
 ```bash
 docker-compose up -d
 ```
-
-**Paso 2: Iniciar Servidor de WebSockets (Subscriber Receptor)**
-Abre otra consola separada:
+**Consola 2 y 3: Levantar Nodos Backend**
 ```bash
-cd subscriber
-npm install  # Solo si es la primera vez
-node index.js
+cd subscriber && npm install && node index.js
+# En la otra consola:
+cd publisher && npm install && node index.js
 ```
-
-**Paso 3: Iniciar Flujo de Eventos IoT (Publisher Simulado)**
-Abre otra consola separada:
+**Consola 4: Interfaz Gráfica (Vite)**
 ```bash
-cd publisher
-npm install  # Solo si es la primera vez
-node index.js
-```
-
-**Paso 4: Iniciar el Panel Interactivo (Frontend)**
-En una última consola separada lanza tu Vite:
-```bash
-cd frontend
-npm install  # Solo si es la primera vez
-npm run dev
+cd frontend && npm install && npm run dev
 ```
 
 ---
-
-## 🛠 Detalles Técnicos Extra
-- **Persistencia Temporal:** Redis guarda hasta 15 minutos en el historial rotativo manejando `ZADD clima_historial <timestamp> <JSON_serializado>`.
-- **Mitigación de Errores Vía Throttling RAF:** Si ocurre un pico inesperado o spamming en la red IoT, JavaScript maneja los eventos de Socket usando la API nativa `requestAnimationFrame` impidiendo el bloqueo del hilo principal de pintado UI.
-- **Resiliencia de Datos:** El servidor capta posibles fallas en el `JSON.parse` envolviéndolos de manera estricta para evitar bloqueos del Backend si un sensor inyectara datos crudos o corruptos al Redis PubSum.
+*Implementado mediante WebSockets puros, JS Vanilla, Node y Redis IORedis.*
