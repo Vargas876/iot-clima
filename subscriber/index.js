@@ -46,6 +46,7 @@ pubSubRedis.on('message', (channel, message) => {
             const data = JSON.parse(message);
             // Broadcast the live update
             io.emit('clima_update', data);
+            console.log(`[Flow] Reenviando clima_update para ${data.ciudad} a los clientes conectados.`);
         } catch (error) {
             console.error('[Error de Datos] Fallo al procesar el mensaje desde Redis:', error.message);
         }

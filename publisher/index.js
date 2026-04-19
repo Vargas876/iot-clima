@@ -122,7 +122,12 @@ async function publishData() {
     
     // 3. Schedule random walk and publishing every 5 seconds
     setInterval(async () => {
-        simulateRandomWalk();
-        await publishData();
+        try {
+            simulateRandomWalk();
+            await publishData();
+            console.log(`[Live] Actualización enviada a las ${new Date().toLocaleTimeString()} para ${CITIES.length} ciudades.`);
+        } catch (error) {
+            console.error('[CRITICAL] Error en el loop de publicación:', error.message);
+        }
     }, 5000);
 })();
