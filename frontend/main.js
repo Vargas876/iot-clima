@@ -30,6 +30,10 @@ const commonOptions = {
     responsive: true,
     maintainAspectRatio: false,
     animation: { duration: 300 },
+    interaction: {
+        mode: 'index',
+        intersect: false,
+    },
     scales: {
         x: {
             type: 'category',
@@ -85,7 +89,8 @@ function getOrCreateDataset(chart, city) {
             backgroundColor: (cityColors[city] || '#ffffff') + '33',
             borderWidth: 2,
             tension: 0.4,
-            pointRadius: 0
+            pointRadius: 0,
+            pointHoverRadius: 6
         };
         chart.data.datasets.push(dataset);
     }
