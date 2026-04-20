@@ -67,7 +67,7 @@ graph TD
 El sistema está optimizado para ejecutarse en infraestructuras gratuitas de alta escalabilidad:
 
 * **🌐 Frontend (Dashboard)**: [https://iot-clima.vercel.app](https://iot-clima.vercel.app) (Vercel)
-* **📡 Subscriber (WebSocket API)**: [https://iot-clima-subscriber.onrender.com](https://iot-clima-subscriber.onrender.com) (Render)
+* **📡 Subscriber (WebSocket API)**: [https://iot-clima.onrender.com/](https://iot-clima.onrender.com/) (Render)
 * **🤖 Publisher (Worker IoT)**: [https://iot-clima-publisher.onrender.com](https://iot-clima-publisher.onrender.com) (Render)
 * **🗄️ Base de Datos**: Instancia de **Redis Serverless** en Upstash.
 
