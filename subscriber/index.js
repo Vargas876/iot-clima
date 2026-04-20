@@ -9,6 +9,7 @@ const app = express();
 app.use(cors());
 
 // Serve optional REST endpoint just for health checks
+app.get('/', (req, res) => res.send('🌡️ Subscriber IoT Service: Online and Waiting for WebSockets...'));
 app.get('/health', (req, res) => res.send('OK'));
 
 const server = http.createServer(app);
