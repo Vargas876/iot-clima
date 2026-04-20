@@ -104,5 +104,13 @@ Simplemente ejecuta el script de automatización:
 
 ---
 
+## 👥 Integrantes
+
+*   **Juan Vargas**
+*   **Camilo Niño**
+*   **Julian Velandia**
+
+---
+
 **Desarrollado para la asignatura de Electiva I**
 *Implementación de arquitecturas reactivas y sistemas distribuidos.*
