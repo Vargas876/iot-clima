@@ -1,56 +1,99 @@
-# 🌍 Sistema IoT de Clima en Tiempo Real (Redis Pub/Sub)
+# 🌍 IoT ClimaStream: Red de Monitoreo en Tiempo Real
 
-Este proyecto es una simulación avanzada de una red de biosensores IoT instalados en 8 ciudades principales de Colombia, transmitiendo datos climatológicos en tiempo real utilizando una arquitectura de eventos impulsada por **Redis Pub/Sub**.
+[![Vercel](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://iot-clima.vercel.app)
+[![Redis](https://img.shields.io/badge/Database-Redis-red?style=for-the-badge&logo=redis)](https://upstash.com/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js-green?style=for-the-badge&logo=node.js)](https://nodejs.org/)
 
-## 🚀 Arquitectura del Proyecto (Microservicios)
-
-El proyecto está diseñado de forma modularizada, lo que permite su despliegue tanto en local como en infraestructuras Cloud Severless:
-
-1. **Base de Datos (Transmisor y Caché)**: Servidor Redis encargado del enrutamiento de mensajes Pub/Sub y persistencia del historial térmico temporal (`Sorted Sets`).
-2. **`publisher/` (Backend - Emisor Fantasma)**: Node.js worker actuando como la red de sensores. Utiliza un **modelo híbrido**: consulta datos reales a la API de *Open-Meteo* y aplica un algoritmo de *Random walk* entre peticiones para simular las variaciones fluidas.
-3. **`subscriber/` (Backend - Receptor Node)**: Servidor Express + WebSockets. Inyecta el histórico almacenado a clientes nuevos mediante `ZRANGE` y emite un flujo constante de las lecturas en vivo mediante suscripciones Redis.
-4. **`frontend/` (Dashboard Vercel/Vite)**: UI analítica nivel *SaaS* renderizada de forma asíncrona a 60FPS, con mitigación de atascos usando `requestAnimationFrame` (*throttling*). Incluye *Heatmaps* térmicos (Leaflet) y telemetría por Chart.js con animaciones CSS (Mesh Gradients & Glassmorphism).
+### 🚀 [Ver Demo en Vivo (Dashboard)](https://iot-clima.vercel.app)
 
 ---
 
-## ☁️ Acceso en la Nube (Producción)
+## 📋 Descripción del Proyecto
 
-El proyecto se encuentra totalmente parametrizado a través de Variables de Entorno (`.env`) para ejecutarse en la nube usando capas Serverless gratuitas.
+Este ecosistema IoT simula una red avanzada de biosensores climatológicos desplegados en las 8 ciudades principales de Colombia. El sistema utiliza una arquitectura orientada a eventos impulsada por **Redis Pub/Sub**, permitiendo la transmisión de telemetría (temperatura, humedad, presión) con latencia mínima y visualización analítica de alta fidelidad.
 
-- **Redis**: Alojar en [Upstash](https://upstash.com/) `REDIS_URL`
-- **Backends (Pub/Sub)**: Desplegables en [Render](https://render.com/) como "Web Services" independientes (El *Publisher* expone un health check por el puerto nativo para evitar la limitación de workers de Render).
-- **Frontend**: Alojado en [Vercel](https://vercel.com/) consumiendo la URL del Subscriber como `VITE_WS_URL`.
-
-> ⚠️ **Aviso de "Cold Start"**: Los servicios gratuitos de Render se suspenden tras 15 minutos sin tráfico. Al abrir el dashboard Vercel en la web, la conexión inicial WebSocket puede demorar unos 60 a 90 segundos en "despertar" al Subscriber/Publisher antes de proyectar la telemetría en tiempo real.
+![Dashboard Preview](https://raw.githubusercontent.com/Vargas876/iot-clima/main/screenshot_dashboard.png)
+*Vista previa del dashboard con Heatmap térmico y telemetría en tiempo real.*
 
 ---
 
-## ▶️ Ejecución en Local (Ambiente de Pruebas PC)
+## 🏗️ Arquitectura del Sistema
 
-Para iniciar todo el sistema localmente con 0 configuración, necesitas **Node.js** y **Docker Desktop** funcionando.
+El flujo de datos sigue un modelo de microservicios desacoplados:
 
-### Arranque Rápido Automático (Windows)
-1. Abre tu **Docker Desktop**. 
-2. Haz doble clic en el archivo `run_all.bat`. Este script arrancará tu base Redis, instalará dependencias, iniciará ambos backends en consola e iniciará el Dashboard mediante Vite.
-3. Ve a `http://localhost:5173`.
+```mermaid
+graph TD
+    subgraph "Nube (Open-Meteo API)"
+        API[Open-Meteo Server]
+    end
 
-### Ejecución Manual Explicativa
-Abre 4 consolas integradas en el proyecto y lanza lo siguiente en cada una:
+    subgraph "Microservicios Backend"
+        PUB[Publisher Node.js]
+        SUB[Subscriber WebSockets]
+        REDIS[(Redis Pub/Sub)]
+    end
 
-**Consola 1: Iniciar Redis Local**
-```bash
-docker-compose up -d
-```
-**Consola 2 y 3: Levantar Nodos Backend**
-```bash
-cd subscriber && npm install && node index.js
-# En la otra consola:
-cd publisher && npm install && node index.js
-```
-**Consola 4: Interfaz Gráfica (Vite)**
-```bash
-cd frontend && npm install && npm run dev
+    subgraph "Capa de Presentación"
+        FE[Dashboard Vite/Vercel]
+    end
+
+    API -- "Datos Reales" --> PUB
+    PUB -- "Algoritmo Random Walk" --> PUB
+    PUB -- "PUBLISH" --> REDIS
+    REDIS -- "SUBSCRIBE" --> SUB
+    SUB -- "WebSockets (Socket.io)" --> FE
+    REDIS -- "ZRANGE (Historial)" --> SUB
 ```
 
 ---
-*Implementado mediante WebSockets puros, JS Vanilla, Node y Redis IORedis.*
+
+## 🛠️ Stack Tecnológico
+
+| Componente | Tecnología | Rol |
+| :--- | :--- | :--- |
+| **Frontend** | React / Vite | UI Analítica & Rendering 60FPS |
+| **Mapas** | Leaflet.js | Heatmap térmico y geolocalización |
+| **Gráficas** | Chart.js | Telemetría dinámica y series temporales |
+| **Backend** | Node.js / Express | Gestión de flujos y WebSockets |
+| **Mensajería** | Redis (UPSTASH) | Broker de eventos Pub/Sub y Caché de historial |
+| **Estilos** | CSS Moderno | Glassmorphism & Mesh Gradients |
+
+---
+
+## ☁️ Despliegue en Producción (Cloud Serverless)
+
+El sistema está optimizado para ejecutarse en infraestructuras gratuitas de alta escalabilidad:
+
+*   **Frontend**: Desplegado en **Vercel** ([https://iot-clima.vercel.app](https://iot-clima.vercel.app)).
+*   **Subscriber**: Alojado en **Render** como Web Service (Gestiona WebSockets).
+*   **Publisher**: Alojado en **Render** como Worker con Health Check activo.
+*   **Base de Datos**: Instancia de **Redis Serverless** en Upstash.
+
+> [!IMPORTANT]
+> **Nota sobre el "Cold Start":** Debido a que Render suspende los servicios gratuitos tras 15 minutos de inactividad, la primera carga del dashboard puede tardar entre 60 y 90 segundos en "despertar" al ecosistema de nodos backend.
+
+---
+
+## 💻 Configuración Local
+
+Si deseas ejecutar el proyecto en tu máquina local para pruebas de desarrollo:
+
+### Requisitos
+*   Docker Desktop
+*   Node.js v18+
+
+### Paso a Paso (Modo Automático)
+Simplemente ejecuta el script de automatización:
+```bash
+./run_all.bat
+```
+
+### Paso a Paso (Modo Manual)
+1. **Infraestructura**: `docker-compose up -d`
+2. **Subscriber**: `cd subscriber && npm install && npm start`
+3. **Publisher**: `cd publisher && npm install && npm start`
+4. **Frontend**: `cd frontend && npm install && npm run dev`
+
+---
+**Desarrollado para la asignatura de Electiva I**  
+*Implementación de arquitecturas reactivas y sistemas distribuidos.*
