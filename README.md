@@ -13,6 +13,8 @@
 Este ecosistema IoT simula una red avanzada de biosensores climatológicos desplegados en las 8 ciudades principales de Colombia. El sistema utiliza una arquitectura orientada a eventos impulsada por **Redis Pub/Sub**, permitiendo la transmisión de telemetría (temperatura, humedad, presión) con latencia mínima y visualización analítica de alta fidelidad.
 
 ![Dashboard Preview](https://raw.githubusercontent.com/Vargas876/iot-clima/main/screenshot_dashboard.png)
+
+![1776717069728](image/README/1776717069728.png)
 *Vista previa del dashboard con Heatmap térmico y telemetría en tiempo real.*
 
 ---
@@ -49,14 +51,14 @@ graph TD
 
 ## 🛠️ Stack Tecnológico
 
-| Componente | Tecnología | Rol |
-| :--- | :--- | :--- |
-| **Frontend** | React / Vite | UI Analítica & Rendering 60FPS |
-| **Mapas** | Leaflet.js | Heatmap térmico y geolocalización |
-| **Gráficas** | Chart.js | Telemetría dinámica y series temporales |
-| **Backend** | Node.js / Express | Gestión de flujos y WebSockets |
-| **Mensajería** | Redis (UPSTASH) | Broker de eventos Pub/Sub y Caché de historial |
-| **Estilos** | CSS Moderno | Glassmorphism & Mesh Gradients |
+| Componente            | Tecnología       | Rol                                             |
+| :-------------------- | :---------------- | :---------------------------------------------- |
+| **Frontend**    | React / Vite      | UI Analítica & Rendering 60FPS                 |
+| **Mapas**       | Leaflet.js        | Heatmap térmico y geolocalización             |
+| **Gráficas**   | Chart.js          | Telemetría dinámica y series temporales       |
+| **Backend**     | Node.js / Express | Gestión de flujos y WebSockets                 |
+| **Mensajería** | Redis (UPSTASH)   | Broker de eventos Pub/Sub y Caché de historial |
+| **Estilos**     | CSS Moderno       | Glassmorphism & Mesh Gradients                  |
 
 ---
 
@@ -64,10 +66,12 @@ graph TD
 
 El sistema está optimizado para ejecutarse en infraestructuras gratuitas de alta escalabilidad:
 
-*   **Frontend**: Desplegado en **Vercel** ([https://iot-clima.vercel.app](https://iot-clima.vercel.app)).
-*   **Subscriber**: Alojado en **Render** como Web Service (Gestiona WebSockets).
-*   **Publisher**: Alojado en **Render** como Worker con Health Check activo.
-*   **Base de Datos**: Instancia de **Redis Serverless** en Upstash.
+* **🌐 Frontend (Dashboard)**: [https://iot-clima.vercel.app](https://iot-clima.vercel.app) (Vercel)
+* **📡 Subscriber (WebSocket API)**: [https://iot-clima-subscriber.onrender.com](https://iot-clima-subscriber.onrender.com) (Render)
+* **🤖 Publisher (Worker IoT)**: [https://iot-clima-publisher.onrender.com](https://iot-clima-publisher.onrender.com) (Render)
+* **🗄️ Base de Datos**: Instancia de **Redis Serverless** en Upstash.
+
+  ![1776717102063](image/README/1776717102063.png)
 
 > [!IMPORTANT]
 > **Nota sobre el "Cold Start":** Debido a que Render suspende los servicios gratuitos tras 15 minutos de inactividad, la primera carga del dashboard puede tardar entre 60 y 90 segundos en "despertar" al ecosistema de nodos backend.
@@ -79,21 +83,26 @@ El sistema está optimizado para ejecutarse en infraestructuras gratuitas de alt
 Si deseas ejecutar el proyecto en tu máquina local para pruebas de desarrollo:
 
 ### Requisitos
-*   Docker Desktop
-*   Node.js v18+
+
+* Docker Desktop
+* Node.js v18+
 
 ### Paso a Paso (Modo Automático)
+
 Simplemente ejecuta el script de automatización:
+
 ```bash
 ./run_all.bat
 ```
 
 ### Paso a Paso (Modo Manual)
+
 1. **Infraestructura**: `docker-compose up -d`
 2. **Subscriber**: `cd subscriber && npm install && npm start`
 3. **Publisher**: `cd publisher && npm install && npm start`
 4. **Frontend**: `cd frontend && npm install && npm run dev`
 
 ---
-**Desarrollado para la asignatura de Electiva I**  
+
+**Desarrollado para la asignatura de Electiva I**
 *Implementación de arquitecturas reactivas y sistemas distribuidos.*
